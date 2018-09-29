@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="newtransformerprojectFlow1">
+        <choice doc:name="Choice">
+            <when expression="payload.equals('Europe')">
+                <set-payload value="#[0.85]" doc:name="Euro"/>
+            </when>
+            <when expression="payload.equals('UK')">
+                <set-payload value="#[0.75]" doc:name="Pound"/>
+            </when>
+            <when expression="payload.equals('Eriteria')">
+                <set-payload value="#[15]" doc:name="Nakifa"/>
+            </when>
+            <otherwise>
+                <set-payload value="#[1]" doc:name="USD"/>
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="newtransformerprojectFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/John" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="6462d7f9-067a-411d-a4a1-c7bb71cdaf11">
+            <dw:input-payload doc:sample="Sampledata.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%var conversionRate=lookup("newtransformerprojectFlow1",inboundProperties.'http.query.params'.country)
+%function getconversionRate(price)price*conversionRate
+%var getconversionRate=(price)->price*conversionRate
+%function getImages(images){
+	(
+		images map {image: $}
+	)
+}
+---
+products: {((
+	
+ payload map {product: {pname: $.name ++ $$,
+	                       pid: $.productId,
+	                       offerPrice:getconversionRate ($.offer.offerPrice),
+	                       brandName: $.brandName,
+	                       images: getImages($.images)
+	                       }
+	
+}
+	
+) 
+
+	
+) 
+	
+}
+
+	                       
+ ]]></dw:set-payload>
+        </dw:transform-message>
+        <logger level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
