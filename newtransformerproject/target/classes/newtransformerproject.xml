@@ -29,37 +29,8 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <http:listener config-ref="HTTP_Listener_Configuration" path="/John" doc:name="HTTP"/>
         <dw:transform-message doc:name="Transform Message" metadata:id="6462d7f9-067a-411d-a4a1-c7bb71cdaf11">
             <dw:input-payload doc:sample="Sampledata.json" mimeType="application/json"/>
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/xml
-%var conversionRate=lookup("newtransformerprojectFlow1",inboundProperties.'http.query.params'.country)
-%function getconversionRate(price)price*conversionRate
-%var getconversionRate=(price)->price*conversionRate
-%function getImages(images){
-	(
-		images map {image: $}
-	)
-}
----
-products: {((
-	
- payload map {product: {pname: $.name ++ $$,
-	                       pid: $.productId,
-	                       offerPrice:getconversionRate ($.offer.offerPrice),
-	                       brandName: $.brandName,
-	                       images: getImages($.images)
-	                       }
-	
-}
-	
-) 
+            <dw:set-payload resource="classpath:product_dwtransformer.dwl"/>
 
-	
-) 
-	
-}
-
-	                       
- ]]></dw:set-payload>
         </dw:transform-message>
         <logger level="INFO" doc:name="Logger"/>
     </flow>
